@@ -5,7 +5,7 @@
     "@rollup/plugin-commonjs": "^28.0.0",
     "@types/node": "^22.0.0",
     "@types/ua-parser-js": "^0.7.39",
-    "clipboard": "^2.0.11",
+    "clipboard": "^2.n0.11",
     "terser": "^5.31.3"
   },
   "scripts": {

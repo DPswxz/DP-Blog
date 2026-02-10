@@ -3,7 +3,7 @@ title: 罗马音
 description: 日语发音与罗马字对照
 categorys:
   - 基础
-date: '2026-02-10T05:25:39.949Z'
+date: '2026-02-09'
 ---
 
 

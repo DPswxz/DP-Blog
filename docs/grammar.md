@@ -3,7 +3,7 @@ title: 基础语法
 description: 日语基本句子结构
 categorys:
   - 语法
-date: '2026-02-10T05:25:39.941Z'
+date: '2026-02-10'
 ---
 
 # 日语基础语法 (Grammar)
