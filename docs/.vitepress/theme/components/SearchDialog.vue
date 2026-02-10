@@ -1,33 +1,101 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useRouter, withBase } from 'vitepress'
 
 // Import all markdown files as raw text at build time
 const rawFiles = import.meta.glob('/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 
-interface SearchPage {
-  title: string
-  url: string
+interface SearchSection {
+  pageTitle: string
+  pageUrl: string
+  heading: string
+  anchor: string
   content: string
+  fullUrl: string
 }
 
-// Parse the files into searchable data
-const pages: SearchPage[] = Object.entries(rawFiles).map(([path, content]) => {
-  const titleMatch = content.match(/title:\s*['"]?(.+?)['"]?\s*$/m)
-  const title = titleMatch ? titleMatch[1].trim() : path.replace(/^\//, '').replace(/\.md$/, '')
-
-  const cleanContent = content
-    .replace(/---[\s\S]*?---/, '')
-    .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/\{[^}]*\}/g, ' ')
-    .replace(/https?:\/\/\S+/g, ' ')
-    .replace(/[#*`>\[\]()!\-|=_~^]/g, ' ')
-    .replace(/\s+/g, ' ')
+// Generate a slug matching VitePress's heading anchor format
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
     .trim()
+    .replace(/[\s]+/g, '-')
+    .replace(/[^\w\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\-]/g, '')
+    .replace(/\-+/g, '-')
+    .replace(/^\-|\-$/g, '')
+}
 
-  const url = path.replace(/\.md$/, '.html')
-  return { title, url, content: cleanContent }
+// Parse each file into sections based on headings
+const sections: SearchSection[] = []
+
+Object.entries(rawFiles).forEach(([path, content]) => {
+  const titleMatch = content.match(/title:\s*['"]?(.+?)['"]?\s*$/m)
+  const pageTitle = titleMatch ? titleMatch[1].trim() : path.replace(/^\//, '').replace(/\.md$/, '')
+  const pageUrl = path.replace(/\.md$/, '.html')
+
+  // Strip frontmatter
+  const body = content.replace(/---[\s\S]*?---/, '')
+
+  // Split by headings (## or ###)
+  const headingRegex = /^(#{1,4})\s+(.+)$/gm
+  const headings: { level: number; text: string; index: number }[] = []
+  let match
+  while ((match = headingRegex.exec(body)) !== null) {
+    headings.push({ level: match[1].length, text: match[2].trim(), index: match.index })
+  }
+
+  function cleanText(raw: string): string {
+    return raw
+      .replace(/```[\s\S]*?```/g, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\{[^}]*\}/g, ' ')
+      .replace(/https?:\/\/\S+/g, ' ')
+      .replace(/[#*`>\[\]()!\-|=_~^]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+  }
+
+  if (headings.length === 0) {
+    // No headings, treat entire page as one section
+    sections.push({
+      pageTitle,
+      pageUrl,
+      heading: '',
+      anchor: '',
+      content: cleanText(body),
+      fullUrl: pageUrl
+    })
+  } else {
+    // Content before first heading
+    const beforeFirst = body.substring(0, headings[0].index)
+    const beforeContent = cleanText(beforeFirst)
+    if (beforeContent.length > 10) {
+      sections.push({
+        pageTitle,
+        pageUrl,
+        heading: '',
+        anchor: '',
+        content: beforeContent,
+        fullUrl: pageUrl
+      })
+    }
+
+    // Each heading section
+    for (let i = 0; i < headings.length; i++) {
+      const start = headings[i].index
+      const end = i + 1 < headings.length ? headings[i + 1].index : body.length
+      const sectionContent = body.substring(start, end)
+      const anchor = slugify(headings[i].text)
+      sections.push({
+        pageTitle,
+        pageUrl,
+        heading: headings[i].text,
+        anchor,
+        content: cleanText(sectionContent),
+        fullUrl: anchor ? `${pageUrl}#${anchor}` : pageUrl
+      })
+    }
+  }
 })
 
 const searchQuery = ref('')
@@ -36,32 +104,37 @@ const inputRef = ref<HTMLInputElement | null>(null)
 const selectedIndex = ref(0)
 const router = useRouter()
 
+watch(searchQuery, () => {
+  selectedIndex.value = 0
+})
+
 const results = computed(() => {
   const query = searchQuery.value.toLowerCase().trim()
   if (!query || query.length < 1) return []
 
-  return pages
-    .filter(page => {
-      return page.title.toLowerCase().includes(query) ||
-             page.content.toLowerCase().includes(query)
+  return sections
+    .filter(section => {
+      return section.pageTitle.toLowerCase().includes(query) ||
+             section.heading.toLowerCase().includes(query) ||
+             section.content.toLowerCase().includes(query)
     })
-    .map(page => {
-      const contentLower = page.content.toLowerCase()
+    .map(section => {
+      const contentLower = section.content.toLowerCase()
       const idx = contentLower.indexOf(query)
       let snippet = ''
       if (idx !== -1) {
         const start = Math.max(0, idx - 40)
-        const end = Math.min(page.content.length, idx + query.length + 80)
-        snippet = (start > 0 ? '...' : '') + page.content.slice(start, end) + (end < page.content.length ? '...' : '')
+        const end = Math.min(section.content.length, idx + query.length + 80)
+        snippet = (start > 0 ? '...' : '') + section.content.slice(start, end) + (end < section.content.length ? '...' : '')
       } else {
-        snippet = page.content.substring(0, 100) + (page.content.length > 100 ? '...' : '')
+        snippet = section.content.substring(0, 100) + (section.content.length > 100 ? '...' : '')
       }
       return {
-        ...page,
-        snippet,
-        titleMatch: page.title.toLowerCase().includes(query)
+        ...section,
+        snippet
       }
     })
+    .slice(0, 20)
 })
 
 function openSearch() {
@@ -79,8 +152,31 @@ function closeSearch() {
 }
 
 function goTo(url: string) {
-  router.go(withBase(url))
+  const hash = url.includes('#') ? url.split('#')[1] : ''
+  const pagePath = url.split('#')[0]
+
+  router.go(withBase(pagePath))
   closeSearch()
+
+  // After navigation, scroll to the anchor
+  if (hash) {
+    nextTick(() => {
+      setTimeout(() => {
+        const target = document.getElementById(hash)
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        } else {
+          // Fallback: try again after content loads
+          setTimeout(() => {
+            const el = document.getElementById(hash)
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }
+          }, 500)
+        }
+      }, 300)
+    })
+  }
 }
 
 function highlightText(text: string, query: string): string {
@@ -106,7 +202,7 @@ function onInputKeydown(e: KeyboardEvent) {
     selectedIndex.value = Math.max(selectedIndex.value - 1, 0)
   } else if (e.key === 'Enter' && results.value.length > 0) {
     e.preventDefault()
-    goTo(results.value[selectedIndex.value].url)
+    goTo(results.value[selectedIndex.value].fullUrl)
   }
 }
 
@@ -168,13 +264,19 @@ defineExpose({ openSearch })
             <div v-else-if="results.length > 0" class="search-results-list">
               <div
                 v-for="(result, index) in results"
-                :key="result.url"
+                :key="result.fullUrl"
                 class="search-result-item"
                 :class="{ 'search-result-selected': index === selectedIndex }"
-                @click="goTo(result.url)"
+                @click="goTo(result.fullUrl)"
                 @mouseenter="selectedIndex = index"
               >
-                <div class="search-result-title" v-html="highlightText(result.title, searchQuery)"></div>
+                <div class="search-result-title">
+                  <span v-html="highlightText(result.pageTitle, searchQuery)"></span>
+                  <span v-if="result.heading" class="search-result-heading">
+                    <span class="search-result-separator"> › </span>
+                    <span v-html="highlightText(result.heading, searchQuery)"></span>
+                  </span>
+                </div>
                 <div class="search-result-snippet" v-if="result.snippet" v-html="highlightText(result.snippet, searchQuery)"></div>
               </div>
             </div>
@@ -364,6 +466,17 @@ defineExpose({ openSearch })
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+}
+
+.search-result-heading {
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.search-result-separator {
+  color: rgb(var(--mdui-color-on-surface-variant));
+  opacity: 0.5;
+  margin: 0 2px;
 }
 
 .search-highlight {

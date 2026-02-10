@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { data } from '../posts.data'
-
+import '@mdui/icons/swap-vert.js';
 import { gsap } from 'gsap';
 import { withBase, useData, useRouter } from 'vitepress';
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref, watch, computed } from 'vue';
 import PostCard from './PostCard.vue';
 import { useThemeGlobalStore } from '../global';
 import { storeToRefs } from 'pinia'
@@ -28,16 +28,26 @@ interface ContainerListItem {
 }
 
 
-const container_list: ContainerListItem[] = []
+const reversed = ref(false)
 
-if (frontmatter.value.cover_image) {
-    container_list.push({ 'type': 'top-image', 'clickable': false })
-}
+const hasTopImage = frontmatter.value.cover_image
 
+const postItems: ContainerListItem[] = []
 for (let i = 0; i < data.length; i++) {
     if (!hideLayouts.value.includes(data[i].layout)) {
-        container_list.push({ 'type': 'post-card', 'data': data[i], 'clickable': true })
+        postItems.push({ 'type': 'post-card', 'data': data[i], 'clickable': true })
     }
+}
+
+const postList = computed(() => {
+    if (reversed.value) {
+        return [...postItems].reverse()
+    }
+    return [...postItems]
+})
+
+function toggleSort() {
+    reversed.value = !reversed.value
 }
 
 
@@ -71,11 +81,12 @@ onMounted(() => {
 
 watch(() => themeMode.value, flush)
 
-function selectItem(item: any) {
-    if (container_list[item].clickable && containerRef) {
-        let rect = containerRef[item].getBoundingClientRect();
-        selectedItem.value = item;
-        let card_ = containerRef[item].querySelector('.post-card-layout-container')
+function selectPostItem(index: any) {
+    const post = postList.value[index]
+    if (post.clickable && containerRef) {
+        let rect = containerRef[index].getBoundingClientRect();
+        selectedItem.value = index;
+        let card_ = containerRef[index].querySelector('.post-card-layout-container')
         let color = themeMode.value === 'light' ? card_?.getAttribute('card-color') : card_?.getAttribute('card-color-dark')
         if (!color) {
             color = '#FFFFFF'
@@ -86,7 +97,7 @@ function selectItem(item: any) {
                 'y': rect.y,
                 'width': rect.width,
                 'height': rect.height,
-                'url': withBase(container_list[item].data.url),
+                'url': withBase(post.data.url),
                 'active': true
             },
             'fromRouter': true,
@@ -94,7 +105,7 @@ function selectItem(item: any) {
         })
         // delay for wait click animation finish
         setTimeout(() => {
-            router.go(withBase(container_list[item].data.url))
+            router.go(withBase(post.data.url))
         }, 200)
     }
 }
@@ -106,27 +117,60 @@ backgroundImageDark.value = frontmatter.value.cover_image_dark
 
 <template>
     <div class="content-area">
+        <div v-if="hasTopImage" class="top-image">
+            <div class="top-image">
+                <img :src="withBase(frontmatter.cover_image)" alt="" class="top-image-day"
+                    :class="{ 'opacity': !useDark }" draggable="false" @contextmenu.prevent ref="topImage"
+                    width="2000" height="1000">
+                <img :src="withBase(frontmatter.cover_image_dark)" alt="" class="top-image-night"
+                    :class="{ 'opacity': useDark }" draggable="false" @contextmenu.prevent ref="topImageDark"
+                    width="2000" height="1000">
+            </div>
+        </div>
+        <div class="sort-toolbar">
+            <mdui-button-icon class="sort-toggle-btn" @click="toggleSort" :class="{ 'sort-reversed': reversed }">
+                <mdui-icon-swap-vert></mdui-icon-swap-vert>
+            </mdui-button-icon>
+            <span class="sort-label">{{ reversed ? '旧日期在前' : '新日期在前' }}</span>
+        </div>
         <TransitionGroup name="list">
-            <div v-for="(post, i) in container_list" :key="i" @click="selectItem(i)" class="home-content-container"
+            <div v-for="(post, i) in postList" :key="post.data?.url" @click="selectPostItem(i)" class="home-content-container"
                 :data-index="i">
-                <div v-if="post.type === 'top-image'" class="top-image">
-                    <div class="top-image">
-                        <img :src="withBase(frontmatter.cover_image)" alt="" class="top-image-day"
-                            :class="{ 'opacity': !useDark }" draggable="false" @contextmenu.prevent ref="topImage"
-                            width="2000" height="1000">
-                        <img :src="withBase(frontmatter.cover_image_dark)" alt="" class="top-image-night"
-                            :class="{ 'opacity': useDark }" draggable="false" @contextmenu.prevent ref="topImageDark"
-                            width="2000" height="1000">
-                    </div>
-                </div>
-                <post-card v-else :post="post.data"></post-card>
-
+                <post-card :post="post.data"></post-card>
             </div>
         </TransitionGroup>
     </div>
 </template>
 
 <style>
+.sort-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+    padding-left: 10px;
+    margin-bottom: 4px;
+}
+
+.sort-toggle-btn {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s;
+}
+
+.sort-toggle-btn.sort-reversed {
+    transform: rotate(180deg);
+}
+
+.sort-label {
+    font-size: 13px;
+    color: rgb(var(--mdui-color-on-surface-variant));
+    opacity: 0.7;
+    user-select: none;
+}
+
+.list-move {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .top-image {
     position: relative;
     /* width: calc(100vw * 0.70); */

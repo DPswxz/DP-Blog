@@ -65,7 +65,6 @@ onMounted(() => {
             <div class="self-intro-card-container" ref="introCardRef">
                 <div class="self-intro-card">
                     <div class="about-me mdui-prose" v-if="defineConfig.themeConfig.footer.aboutMe">
-                        <p class="about-me-heading">{{ translations.components.aboutMe }}</p>
                         <div class="about-me-contents" v-html="defineConfig.themeConfig.footer.aboutMe"></div>
                     </div>
                     <div class="social mdui-prose"
@@ -90,7 +89,7 @@ onMounted(() => {
                     <div class="copyright">{{ defineConfig.themeConfig.footer.copyRight }}</div>
                     <div class="poweredby">Powered by VitePress</div>
                 </div>
-                <div class="footer-divider" style="width: 95%; margin: 14px auto; position: relative;">
+                <div class="footer-divider" style="width: 95%; margin: 8px auto; position: relative;">
                     <div class="other-info" ref="otherInfo"></div>
                     <mdui-divider></mdui-divider>
                 </div>
@@ -116,13 +115,13 @@ onMounted(() => {
 
 <style>
 .footer-container {
-    margin-top: 40px;
+    margin-top: 20px;
 }
 
 .self-intro-card-container {
     width: 98%;
     height: fit-content;
-    margin: 16px auto 0px auto;
+    margin: 8px auto 0px auto;
 }
 
 .self-intro-card {
@@ -143,7 +142,7 @@ onMounted(() => {
     z-index: 5;
     position: relative;
     opacity: 0.8;
-    margin: 10px 20px;
+    margin: 6px 20px;
 }
 
 .about-me-heading,
@@ -162,9 +161,9 @@ onMounted(() => {
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     opacity: 0.8;
-    margin-top: 14px;
+    margin-top: 8px;
 }
 
 .beian-information,
@@ -174,9 +173,9 @@ onMounted(() => {
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     opacity: 0.8;
-    padding-bottom: 14px;
+    padding-bottom: 8px;
 }
 
 .gongan-beian {

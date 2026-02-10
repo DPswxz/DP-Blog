@@ -288,6 +288,7 @@ onMounted(() => {
 
 
 .post-image-chip {
+    display: none;
     position: absolute;
     width: fit-content;
     top: 10px;
