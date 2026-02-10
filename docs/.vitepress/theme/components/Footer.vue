@@ -90,7 +90,7 @@ onMounted(() => {
                     <div class="copyright">{{ defineConfig.themeConfig.footer.copyRight }}</div>
                     <div class="poweredby">Powered by VitePress</div>
                 </div>
-                <div class="footer-divider" style="width: 95%; margin: 30px auto; position: relative;">
+                <div class="footer-divider" style="width: 95%; margin: 14px auto; position: relative;">
                     <div class="other-info" ref="otherInfo"></div>
                     <mdui-divider></mdui-divider>
                 </div>
@@ -116,13 +116,13 @@ onMounted(() => {
 
 <style>
 .footer-container {
-    margin-top: 96px;
+    margin-top: 40px;
 }
 
 .self-intro-card-container {
     width: 98%;
     height: fit-content;
-    margin: 48px auto 0px auto;
+    margin: 16px auto 0px auto;
 }
 
 .self-intro-card {
@@ -143,13 +143,13 @@ onMounted(() => {
     z-index: 5;
     position: relative;
     opacity: 0.8;
-    margin: 20px;
+    margin: 10px 20px;
 }
 
 .about-me-heading,
 .social-heading,
 .links-heading {
-    font-size: 20px;
+    font-size: 16px;
 }
 
 .about-me-contents {
@@ -162,9 +162,9 @@ onMounted(() => {
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 30px;
+    gap: 16px;
     opacity: 0.8;
-    margin-top: 30px;
+    margin-top: 14px;
 }
 
 .beian-information,
@@ -174,9 +174,9 @@ onMounted(() => {
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 30px;
+    gap: 16px;
     opacity: 0.8;
-    padding-bottom: 30px;
+    padding-bottom: 14px;
 }
 
 .gongan-beian {

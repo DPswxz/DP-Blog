@@ -14,6 +14,7 @@ import NavList from './components/NavList.vue';
 import Footer from './components/Footer.vue'
 import NotFound from './components/NotFound.vue';
 import ClickToTop from './components/ClickToTop.vue';
+import SearchDialog from './components/SearchDialog.vue';
 import SiteNotice from './components/SiteNotice.vue';
 import { setTheme } from 'mdui/functions/setTheme.js';
 import { setColorScheme } from 'mdui/functions/setColorScheme.js'
@@ -338,8 +339,8 @@ onMounted(() => {
         })
     }
     let docSearchConfig = defineConfig.themeConfig.docSearch
-    if (docSearchConfig && docSearchConfig.apiKey && docSearchConfig.appId && docSearchConfig.indexName) {
-
+    const hasDocSearch = docSearchConfig && docSearchConfig.apiKey && docSearchConfig.appId && docSearchConfig.indexName
+    if (hasDocSearch) {
         import('@docsearch/js').then((docsearchModule) => {
             let t = translations.docSearch
             let docsearch = docsearchModule.default
@@ -497,6 +498,7 @@ watch(router.route, (route) => {
             </mdui-button-icon>
             <mdui-top-app-bar-title>{{ title }}<span class="subtitle"> · {{
                 themeConfig.subtitle }}</span></mdui-top-app-bar-title>
+            <SearchDialog />
             <div class="search-button" @click="">
             </div>
             <mdui-button-icon class="mode-button" @click="toggleTheme" selected-icon="dark_mode"
