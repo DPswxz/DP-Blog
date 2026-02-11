@@ -48,6 +48,7 @@ const postList = computed(() => {
 
 function toggleSort() {
     reversed.value = !reversed.value
+    localStorage.setItem('posts_reversed', String(reversed.value))
 }
 
 
@@ -68,6 +69,11 @@ function flush() {
 
 
 onMounted(() => {
+    const saved = localStorage.getItem('posts_reversed')
+    if (saved) {
+        reversed.value = saved === 'true'
+    }
+
     containerRef = document.getElementsByClassName('home-content-container');
     gsap.to(document.getElementsByClassName('content-area')[0], {
         opacity: 1,

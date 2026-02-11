@@ -84,6 +84,7 @@ watch(themeMode, (theme: any) => {
 
 function toggleTheme() {
     themeMode.value = themeMode.value === 'light' ? 'dark' : 'light'
+    localStorage.setItem('theme_mode', themeMode.value)
     switchBackgroundImage()
 }
 
@@ -321,6 +322,11 @@ onMounted(() => {
         })
     }
     globalStore.flushThemeMode()
+    const savedTheme = localStorage.getItem('theme_mode')
+    if (savedTheme === 'light' || savedTheme === 'dark') {
+        themeMode.value = savedTheme
+    }
+
     setTheme((themeMode.value as any))
     if (frontmatter.value.layout === 'redirect') {
         location.href = withBase(frontmatter.value.url)
