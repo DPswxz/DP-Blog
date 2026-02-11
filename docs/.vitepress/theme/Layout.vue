@@ -508,8 +508,7 @@ watch(router.route, (route) => {
                 <mdui-icon-menu></mdui-icon-menu>
                 <mdui-icon-menu-open slot="selected-icon" name="menu_open"></mdui-icon-menu-open>
             </mdui-button-icon>
-            <mdui-top-app-bar-title>{{ title }}<span class="subtitle"> · {{
-                themeConfig.subtitle }}</span></mdui-top-app-bar-title>
+            <mdui-top-app-bar-title>{{ title }}</mdui-top-app-bar-title>
             <SearchDialog />
             <div class="search-button" @click="">
             </div>
@@ -587,11 +586,7 @@ watch(router.route, (route) => {
     opacity: 0;
 }
 
-@media screen and (max-width: 768px) {
-    .subtitle {
-        display: none;
-    }
-}
+
 
 .mdui-navigation-drawer.start-transition {
     view-transition-name: navigation-drawer;

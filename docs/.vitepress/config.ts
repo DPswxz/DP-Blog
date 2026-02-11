@@ -44,9 +44,6 @@ const themeConfig: AkariThemeConfig = {
   },
   footer: {
     aboutMe: "这是一个专注于日语学习的网站，旨在提供清晰易懂的日语基础知识，包括五十音图、基础语法、助词用法以及动词变形等内容。希望能帮助到每一位日语初学者。",
-    socials: [
-      { text: 'GitHub', link: 'https://github.com' },
-    ],
     links: [
       { text: 'VitePress', link: 'https://vitepress.dev' },
     ],
@@ -58,8 +55,7 @@ const themeConfig: AkariThemeConfig = {
 const defineConfig = { // Docs: https://vitepress.dev/reference/site-config
   
   lang: 'zh-CN', // Language, set to 'zh-CN' if you want to use Chinese
-  title: "日语",
-  subtitle: "学习",
+  title: "日语学习",
   description: "日语学习，五十音，语法，助词，动词语气",
   cleanUrls: false,
   themeConfig: {
