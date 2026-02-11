@@ -7,6 +7,8 @@ const themeConfig: AkariThemeConfig = {
     { text: '首页', link: '/index.html' },
     { text: '五十音', link: '/gojuon.html' },
     { text: '罗马音', link: '/romaji.html' },
+    { text: '日常寒暄', link: '/greetings.html' },
+    { text: '数字日期', link: '/counters.html' },
     { text: '语法', link: '/grammar.html' },
     { text: '助词', link: '/particles.html' },
     { text: '动词语气', link: '/verbs.html' },
