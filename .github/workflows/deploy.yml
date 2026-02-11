@@ -3,7 +3,7 @@ name: Deploy Vitepress Theme Akari
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   deploy:
@@ -19,7 +19,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build VitePress
         run: npm run docs:build
