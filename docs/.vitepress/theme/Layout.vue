@@ -132,6 +132,9 @@ router.onBeforeRouteChange = async () => {
     contentLoaded.value = false
     imageLoaded.value = 0
     imagesCount.value = 0
+    if (boxData.value.active && containerRef.value) {
+        containerRef.value.style.opacity = '0'
+    }
     if ((document as any).startViewTransition && boxData.value.active) {
         startTransition.value = true
         transition = (document as any).startViewTransition(async () => {
@@ -148,7 +151,7 @@ router.onAfterRouteChange = async () => {
             containerRef.value.style.transform = `translateY(${boxData.value.y - 96}px)`
             containerRef.value.style.height = boxData.value.height + 'px'
             containerRef.value.style.borderRadius = '1rem'
-
+            containerRef.value.style.opacity = '1'
         }
         transition.ready.then(() => {
             if (containerRef.value && boxData.value.active) {
@@ -236,6 +239,9 @@ router.onAfterRouteChange = async () => {
     } else {
         if (boxData.value.active) {
             console.log('Animation fallback...')
+            if (containerRef.value) {
+                containerRef.value.style.opacity = '1'
+            }
             let listenFlagState = new Promise((resolved, rejected) => {
                 function listen() {
                     if (contentLoaded.value) {
