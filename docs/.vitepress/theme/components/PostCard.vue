@@ -242,8 +242,8 @@ onMounted(() => {
     display: grid;
     grid-template-areas:
         "post-card-title post-card-title"
-        "post-card-date post-card-description";
-    grid-template-columns: fit-content(100%) 1fr;
+        "post-card-description post-card-date";
+    grid-template-columns: 1fr auto;
     position: relative;
     align-self: start;
     margin: 20px;
@@ -266,24 +266,15 @@ onMounted(() => {
     margin: 0;
     grid-area: post-card-title;
     word-break: break-all;
+    align-self: center;
 }
 
 .post-card-date {
     grid-area: post-card-date;
-    align-items: center;
-    display: grid;
-    position: relative;
-}
-
-.post-card-date::after {
-    content: "";
-    width: 3px;
-    height: 3px;
-    position: absolute;
-    bottom: 8px;
-    right: -9px;
-    background-color: rgb(var(--mdui-color-surface-variant));
-    border-radius: 100%;
+    align-self: end;
+    justify-self: end;
+    font-size: var(--mdui-typescale-body-medium-size);
+    opacity: 0.7;
 }
 
 

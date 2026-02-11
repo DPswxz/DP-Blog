@@ -332,10 +332,7 @@ const hideTitle = ref(false)
                     class="post-image" :class="{ 'noRoute': !fromRouter, 'opacity': !use_dark }" width="2000"
                     height="1000">
             </div>
-            <div class="post-page-image-chip">
-                <mdui-chip v-for="category in frontmatter.categorys" style="margin-left: 5px; z-index: 50;">{{ category
-                    }}</mdui-chip>
-            </div>
+
             <div class="post-page-card-content"
                 :class="{ 'has-image': !noCover, 'force-light': coverForceLight, 'force-dark': coverForceDark }"
                 :style="{ 'opacity': hideTitle ? 0 : 1 }" @click="hideTitle = noCover ? false : !hideTitle">
@@ -507,12 +504,7 @@ const hideTitle = ref(false)
 }
 
 
-.post-page-image-chip {
-    position: absolute;
-    width: fit-content;
-    top: 10px;
-    right: 10px;
-}
+
 
 .post-page-background {
     width: 100%;
