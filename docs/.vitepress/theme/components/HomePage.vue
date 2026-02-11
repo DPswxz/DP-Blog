@@ -3,7 +3,7 @@ import { data } from '../posts.data'
 import '@mdui/icons/swap-vert.js';
 import { gsap } from 'gsap';
 import { withBase, useData, useRouter } from 'vitepress';
-import { onMounted, ref, watch, computed } from 'vue';
+import { onMounted, ref, watch, computed, nextTick } from 'vue';
 import PostCard from './PostCard.vue';
 import { useThemeGlobalStore } from '../global';
 import { storeToRefs } from 'pinia'
@@ -83,6 +83,36 @@ onMounted(() => {
     })
     flush()
     emit('imagesLoaded')
+
+    const scrollToPost = localStorage.getItem('scroll_to_post')
+    if (scrollToPost) {
+        localStorage.removeItem('scroll_to_post')
+        nextTick(() => {
+            setTimeout(() => {
+                const cards = document.querySelectorAll('.home-content-container')
+                const list = postList.value
+                for (let i = 0; i < list.length; i++) {
+                    if (withBase(list[i].data?.url) === scrollToPost) {
+                        const card = cards[i]
+                        if (card) {
+                            const layoutMain = document.querySelector('.layout-main')
+                            if (layoutMain) {
+                                const cardRect = card.getBoundingClientRect()
+                                const layoutRect = layoutMain.getBoundingClientRect()
+                                const scrollTarget = cardRect.top - layoutRect.top + layoutMain.scrollTop - 120
+                                gsap.to(layoutMain, {
+                                    scrollTop: scrollTarget,
+                                    duration: 0.6,
+                                    ease: 'power2.out',
+                                })
+                            }
+                        }
+                        break
+                    }
+                }
+            }, 200)
+        })
+    }
 })
 
 watch(() => themeMode.value, flush)

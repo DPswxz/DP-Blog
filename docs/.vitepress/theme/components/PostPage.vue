@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch, nextTick, defineEmits } from 'vue';
-import { useData, withBase } from 'vitepress';
+import { useData, withBase, useRouter } from 'vitepress';
 import { gsap } from 'gsap';
 import { useThemeGlobalStore } from '../global';
 import { storeToRefs } from 'pinia'
@@ -8,6 +8,9 @@ import { formatDateString, changeFontSize, fontSizeData } from '../utils'
 import { translations } from '../translations';
 import '@mdui/icons/access-time.js';
 import '@mdui/icons/link.js';
+import '@mdui/icons/arrow-back.js';
+
+const router = useRouter();
 
 const store = useThemeGlobalStore();
 const { themeMode, themeColor, fromRouter, pageViews, boxData, backgroundImage, backgroundImageDark, contentLoaded } = storeToRefs(store);
@@ -318,9 +321,20 @@ watch(contentLoaded, (loaded: any) => {
 
 const hideTitle = ref(false)
 
+function goBack() {
+    localStorage.setItem('scroll_to_post', router.route.path)
+    router.go(withBase('/'))
+}
+
 </script>
 
 <template>
+    <div class="back-button-bar">
+        <mdui-button-icon class="back-btn" @click="goBack">
+            <mdui-icon-arrow-back></mdui-icon-arrow-back>
+        </mdui-button-icon>
+        <span class="back-label">返回首页</span>
+    </div>
     <div variant="filled" class="post-page-background" ref="postPageBackgroundRef">
         <div class="post-page-card" :class="{ 'has-image': !noCover }">
             <div class="post-page-img" ref="postImgRef" :class="{ 'noRoute': !fromRouter }"
@@ -371,6 +385,31 @@ const hideTitle = ref(false)
 
 
 <style>
+.back-button-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 0;
+    padding-left: 10px;
+    margin-bottom: 8px;
+}
+
+.back-btn {
+    transition: transform 0.2s ease;
+}
+
+.back-btn:hover {
+    transform: translateX(-3px);
+}
+
+.back-label {
+    font-size: 14px;
+    color: rgb(var(--mdui-color-on-surface-variant));
+    opacity: 0.8;
+    user-select: none;
+    cursor: pointer;
+}
+
 .post-page-img {
     width: 100%;
 }
