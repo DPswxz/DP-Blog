@@ -125,6 +125,19 @@ onMounted(() => {
         viewText.value = frontmatter.value.description
     }
     nextTick(() => {
+        if (fromRouter.value) {
+            if (postContentRef.value) {
+                gsap.set(postContentRef.value, {
+                    marginTop: 500,
+                    opacity: 0,
+                })
+            }
+            if (postPageBackgroundRef.value) {
+                gsap.set(postPageBackgroundRef.value, {
+                    borderRadius: '1rem',
+                })
+            }
+        }
         toggleTheme(themeMode.value)
         if (postContentRef.value) {
             let all_images = postContentRef.value.querySelectorAll('img')
@@ -330,10 +343,10 @@ function goBack() {
 
 <template>
     <div class="back-button-bar">
-        <mdui-button-icon class="back-btn" @click="goBack">
-            <mdui-icon-arrow-back></mdui-icon-arrow-back>
-        </mdui-button-icon>
-        <span class="back-label">返回首页</span>
+        <mdui-chip class="back-chip" @click="goBack" clickable elevated>
+            <mdui-icon-arrow-back slot="icon" class="back-icon"></mdui-icon-arrow-back>
+            返回首页
+        </mdui-chip>
     </div>
     <div variant="filled" class="post-page-background" ref="postPageBackgroundRef">
         <div class="post-page-card" :class="{ 'has-image': !noCover }">
@@ -394,21 +407,7 @@ function goBack() {
     margin-bottom: 8px;
 }
 
-.back-btn {
-    transition: transform 0.2s ease;
-}
 
-.back-btn:hover {
-    transform: translateX(-3px);
-}
-
-.back-label {
-    font-size: 14px;
-    color: rgb(var(--mdui-color-on-surface-variant));
-    opacity: 0.8;
-    user-select: none;
-    cursor: pointer;
-}
 
 .post-page-img {
     width: 100%;

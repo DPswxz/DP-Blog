@@ -99,18 +99,18 @@ onMounted(() => {
                             if (layoutMain) {
                                 const cardRect = card.getBoundingClientRect()
                                 const layoutRect = layoutMain.getBoundingClientRect()
-                                const scrollTarget = cardRect.top - layoutRect.top + layoutMain.scrollTop - 120
+                                const scrollTarget = cardRect.top - layoutRect.top + layoutMain.scrollTop - 15
                                 gsap.to(layoutMain, {
                                     scrollTop: scrollTarget,
-                                    duration: 0.6,
-                                    ease: 'power2.out',
+                                    duration: 0.8,
+                                    ease: 'power3.out',
                                 })
                             }
                         }
                         break
                     }
                 }
-            }, 200)
+            }, 400)
         })
     }
 })
@@ -164,10 +164,10 @@ backgroundImageDark.value = frontmatter.value.cover_image_dark
             </div>
         </div>
         <div class="sort-toolbar">
-            <mdui-button-icon class="sort-toggle-btn" @click="toggleSort" :class="{ 'sort-reversed': reversed }">
-                <mdui-icon-swap-vert></mdui-icon-swap-vert>
-            </mdui-button-icon>
-            <span class="sort-label">{{ reversed ? '旧日期在前' : '新日期在前' }}</span>
+            <mdui-chip class="sort-chip" @click="toggleSort" clickable elevated>
+                <mdui-icon-swap-vert slot="icon" class="sort-icon" :class="{ 'sort-reversed': reversed }"></mdui-icon-swap-vert>
+                {{ reversed ? '旧日期在前' : '新日期在前' }}
+            </mdui-chip>
         </div>
         <TransitionGroup name="list">
             <div v-for="(post, i) in postList" :key="post.data?.url" @click="selectPostItem(i)" class="home-content-container"
@@ -188,19 +188,12 @@ backgroundImageDark.value = frontmatter.value.cover_image_dark
     margin-bottom: 4px;
 }
 
-.sort-toggle-btn {
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s;
+.sort-icon {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.sort-toggle-btn.sort-reversed {
+.sort-icon.sort-reversed {
     transform: rotate(180deg);
-}
-
-.sort-label {
-    font-size: 13px;
-    color: rgb(var(--mdui-color-on-surface-variant));
-    opacity: 0.7;
-    user-select: none;
 }
 
 .list-move {

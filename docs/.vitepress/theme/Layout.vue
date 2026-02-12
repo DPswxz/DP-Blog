@@ -170,7 +170,7 @@ router.onAfterRouteChange = async () => {
                     },
                     {
                         duration: 500,
-                        easing: 'ease-out',
+                        easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
                         pseudoElement: '::view-transition-old(layout-main)',
                     }
                 );
@@ -181,7 +181,7 @@ router.onAfterRouteChange = async () => {
                     },
                     {
                         duration: 500,
-                        easing: 'ease-out',
+                        easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
                         pseudoElement: '::view-transition-new(layout-main)',
                     }
                 );
@@ -193,9 +193,11 @@ router.onAfterRouteChange = async () => {
             }
 
             let listenFlagState = new Promise((resolved, rejected) => {
+                let attempts = 0
                 function listen() {
-                    if (contentLoaded.value) {
-                        return resolved(contentLoaded.value)
+                    attempts++
+                    if (contentLoaded.value || attempts > 30) {
+                        return resolved(true)
                     }
 
                     setTimeout(() => requestAnimationFrame(listen), 100)
@@ -211,7 +213,7 @@ router.onAfterRouteChange = async () => {
                         y: boxData.value.y - 96,
                         height: boxData.value.height,
                     }, {
-                        y: 0, duration: 0.7, height: 'initial', ease: "expo.out", borderRadius: '1.75rem',
+                        y: 0, duration: 0.7, height: 'initial', ease: "power3.out", borderRadius: '1.75rem',
                         onStart: () => {
 
                         },
@@ -243,9 +245,11 @@ router.onAfterRouteChange = async () => {
                 containerRef.value.style.opacity = '1'
             }
             let listenFlagState = new Promise((resolved, rejected) => {
+                let attempts = 0
                 function listen() {
-                    if (contentLoaded.value) {
-                        return resolved(contentLoaded.value)
+                    attempts++
+                    if (contentLoaded.value || attempts > 30) {
+                        return resolved(true)
                     }
                     if (containerRef.value) {
                         if (!location.hash) {
@@ -272,7 +276,7 @@ router.onAfterRouteChange = async () => {
                                 layoutRef.value?.scrollTo(0, 0)
                             }
                         },
-                        y: 0, opacity: 1, duration: 0.7, height: 'initial', ease: "expo.out",
+                        y: 0, opacity: 1, duration: 0.7, height: 'initial', ease: "power3.out",
                         onComplete: () => {
                             boxData.value.active = false
                             fromRouter.value = false

@@ -257,7 +257,7 @@ defineExpose({ openSearch })
 
           <div class="search-results-container">
             <div v-if="searchQuery.trim() && results.length === 0" class="search-no-results">
-              <span class="search-no-results-icon">🔍</span>
+              <mdui-icon-search class="search-no-results-icon"></mdui-icon-search>
               <span>没有找到 "<strong>{{ searchQuery }}</strong>" 的相关结果</span>
             </div>
 
@@ -414,7 +414,8 @@ defineExpose({ openSearch })
 }
 
 .search-no-results-icon {
-  font-size: 20px;
+  font-size: 24px;
+  opacity: 0.5;
 }
 
 .search-empty-state {
