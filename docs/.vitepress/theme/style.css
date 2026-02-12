@@ -44,3 +44,43 @@ img[lazy=loading] {
   }
   
 } */
+
+.mdui-prose table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 1.5rem 0;
+  display: table;
+  border: 1px solid rgba(var(--mdui-color-on-surface), 0.12);
+  border-radius: var(--mdui-shape-corner-large);
+  overflow: hidden;
+}
+
+.mdui-prose table tr {
+  background-color: transparent;
+}
+
+.mdui-prose table tr:nth-child(2n) {
+  background-color: rgba(var(--mdui-color-on-surface), 0.04);
+}
+
+.mdui-prose table th,
+.mdui-prose table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(var(--mdui-color-on-surface), 0.12);
+  border-right: 1px solid rgba(var(--mdui-color-on-surface), 0.35);
+}
+
+.mdui-prose table tr:last-child td {
+  border-bottom: none;
+}
+
+.mdui-prose table tr th:last-child,
+.mdui-prose table tr td:last-child {
+  border-right: none;
+}
+
+.mdui-prose table th {
+  font-weight: 600;
+  border-bottom: 1px solid rgba(var(--mdui-color-on-surface), 0.35);
+}
