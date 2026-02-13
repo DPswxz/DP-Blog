@@ -1,28 +1,28 @@
-A Material You stylized theme for vitepress, built with Vue3 + MDUI + GSAP and etc.
+一个 Material You 风格的 VitePress 主题，基于 Vue3 + MDUI + GSAP 等构建。
 
 
-## Showcase
+## 展示
 
 ![](/assets/20240514185649.jpg)
 
 
-## Demos
+## 演示
 
 [vitepress-theme-akari.vercel.app](https://vitepress-theme-akari.vercel.app)
 
-[stray-soul.com](https://stray-soul.com) (I made some customs for my self, but however you can make your own too!)
+[stray-soul.com](https://stray-soul.com)（我为自己做了一些定制，你也可以做属于你自己的！）
 
-## Usage
+## 使用方法
 
-Just clone this repo, install dependencies (`npm install`), then configure some things:
+克隆本仓库，安装依赖（`npm install`），然后进行一些配置：
 
 ### config.ts
 
-I added some comments so you can just go open and see it, it could be easily understand. (Maybe...)
+我加了一些注释，你可以直接打开查看，应该很容易理解。（大概...）
 
-However, some fields are not included, the following are the details:
+不过有些字段没有包含在内，以下是详细说明：
 
-#### Views counter
+#### 访问计数器
 
 ```js
 const themeConfig: AkariThemeConfig = {
@@ -33,12 +33,12 @@ const themeConfig: AkariThemeConfig = {
 
 ```
 
-Basically, it is just links to a simple counter for page total views, it required backend things, so I just hide it by default.
+这只是一个简单的页面总访问量计数器链接，需要后端支持，所以默认隐藏。
 
-However, you can just deploy it by yourself, the reference code is in `counter.py`.
+你可以自行部署，参考代码在 `counter.py` 中。
 
 
-#### Beian
+#### 备案
 
 ```js
 const themeConfig: AkariThemeConfig = {
@@ -49,7 +49,7 @@ const themeConfig: AkariThemeConfig = {
             use: true,
             gongan: {
                 icon: '',
-                link: ''，
+                link: '',
                 text: ''
             },
             icp: {
@@ -64,9 +64,9 @@ const themeConfig: AkariThemeConfig = {
 
 ```
 
-If your server are located in China, these options may be useful. :>
+如果你的服务器在中国大陆，这些选项可能会用到。:>
 
-### Article
+### 文章
 
 ```md
 ---
@@ -76,46 +76,46 @@ cc_license: true
 ---
 ```
 
-When set to true, the cc license component will be displayed at the bottom of the page. The display text can be configured in `translation.ts`
+设置为 true 时，页面底部会显示 CC 许可证组件。显示文本可以在 `translation.ts` 中配置。
 
 
-## Run & Build
+## 运行与构建
 
-Dev: `npm run docs:dev`
+开发：`npm run docs:dev`
 
-Build: `npm run docs:build`
+构建：`npm run docs:build`
 
-Preview dist: `npm run docs:preview`
+预览构建产物：`npm run docs:preview`
 
-Note that content-fixer.mjs will be run when executing the build to fix missing parameter fields in the article, so there is no need to add `color`, `color_dark`, `date` manually.
-
-
-## Translations
-
-Currently, the theme supports `en-US` and `zh-CN` language, it can be configured in `config.ts`.
-
-If you want to support another language, the PR is welcome.
+注意，执行构建时会自动运行 content-fixer.mjs 来补全文章中缺失的参数字段，因此无需手动添加 `color`、`color_dark`、`date`。
 
 
-## Q&A
+## 国际化
 
-### Wait, why Akari, not MDxx?
+目前主题支持 `en-US` 和 `zh-CN` 语言，可在 `config.ts` 中配置。
 
-I added my flavor to it, so it may not designed in MD3 style precisely. Also I have no idea about name it... so that.
+如果你想支持其他语言，欢迎提交 PR。
 
-### Your code smells so terrible...
 
-This is my first project built with Vue and etc. so... you probably know. But however PR is welcome.
+## 常见问题
 
-### Animations are so buggy...
+### 为什么叫 Akari，不叫 MDxx？
 
-I tried my best... sorry.
+我加入了自己的风格，所以可能并不完全符合 MD3 的设计规范。而且我也想不出什么好名字...就这样吧。
 
-### What else you want to say?
+### 你的代码写得好烂...
 
-I dunno at this point, so that's all.
+这是我第一个用 Vue 等技术栈构建的项目，所以...你懂的。不过欢迎提交 PR。
 
-## References
+### 动画好多 bug...
+
+我尽力了...抱歉。
+
+### 还有什么想说的吗？
+
+暂时没有了，就这样吧。
+
+## 参考
 
 [MDUI](https://mdui.org/)
 
@@ -128,4 +128,3 @@ I dunno at this point, so that's all.
 [vitepress-theme-trigger](https://github.com/laplacetw/vitepress-theme-trigger)
 
 [bsblog](https://github.com/bsdayo/blog)
-

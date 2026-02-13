@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
-import { useRouter, withBase } from 'vitepress'
+import { useRouter, useRoute, withBase } from 'vitepress'
 
 // Import all markdown files as raw text at build time
 const rawFiles = import.meta.glob('/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>
@@ -153,31 +153,168 @@ function closeSearch() {
 
 function goTo(url: string) {
   const hash = url.includes('#') ? url.split('#')[1] : ''
-  const pagePath = url.split('#')[0]
+  const query = searchQuery.value.trim()
+  const currentPath = route.path
+  const targetPath = withBase(url).split('#')[0]
 
-  router.go(withBase(pagePath))
-  closeSearch()
+  // Clear previous highlights
+  document.querySelectorAll('.search-scroll-highlight').forEach(el => {
+    const parent = el.parentNode
+    if (parent) {
+      parent.replaceChild(document.createTextNode(el.textContent || ''), el)
+      parent.normalize()
+    }
+  })
 
-  // After navigation, scroll to the anchor
-  if (hash) {
-    nextTick(() => {
-      setTimeout(() => {
-        const target = document.getElementById(hash)
-        if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        } else {
-          // Fallback: try again after content loads
-          setTimeout(() => {
-            const el = document.getElementById(hash)
-            if (el) {
-              el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-            }
-          }, 500)
-        }
-      }, 300)
-    })
+  if (query) {
+    // Same page: scroll immediately
+    if (currentPath === targetPath || currentPath + '/' === targetPath) {
+      sessionStorage.setItem('searchScrollQuery', query)
+      sessionStorage.setItem('searchScrollHash', hash)
+      isOpen.value = false
+      nextTick(() => {
+        setTimeout(scrollToMatchedText, 100)
+      })
+      return
+    }
+
+    // Different page: store for after navigation
+    sessionStorage.setItem('searchScrollQuery', query)
+    sessionStorage.setItem('searchScrollHash', hash)
+  } else {
+    sessionStorage.removeItem('searchScrollQuery')
+    sessionStorage.removeItem('searchScrollHash')
   }
+
+  router.go(withBase(url))
+  isOpen.value = false
 }
+
+// Scroll to matched text after navigation
+function scrollToMatchedText() {
+  const query = sessionStorage.getItem('searchScrollQuery')
+
+  if (!query) return
+
+  // Clear storage immediately to prevent duplicate execution
+  sessionStorage.removeItem('searchScrollQuery')
+  sessionStorage.removeItem('searchScrollHash')
+
+  // Wait for page to fully render
+  nextTick(() => {
+    setTimeout(() => {
+      const normalizedQuery = query.toLowerCase().trim()
+      const queryWords = normalizedQuery.split(/\s+/)
+
+      // Search in main content area
+      const contentSelectors = [
+        '#post-content',
+        '.post-page-content-area',
+        '.vp-doc',
+        '.theme-doc-content',
+        '#app > div > main',
+        'main',
+        'article'
+      ]
+
+      let found = false
+
+      for (const selector of contentSelectors) {
+        const container = document.querySelector(selector)
+        if (!container) continue
+
+        // Find all text nodes
+        const walker = document.createTreeWalker(
+          container,
+          NodeFilter.SHOW_TEXT,
+          null
+        )
+
+        const textNodes: { node: Text; text: string }[] = []
+        let node: Text | null
+        while ((node = walker.nextNode() as Text)) {
+          const text = node.textContent?.trim()
+          if (text && text.length > 1) {
+            const parent = node.parentElement
+            if (parent && !['SCRIPT', 'STYLE', 'NOSCRIPT', 'IFRAME'].includes(parent.tagName)) {
+              textNodes.push({ node, text })
+            }
+          }
+        }
+
+        // Try exact match first
+        for (const { node: textNode, text } of textNodes) {
+          const textLower = text.toLowerCase()
+          const idx = textLower.indexOf(normalizedQuery)
+          if (idx !== -1) {
+            found = scrollToTextNode(textNode, idx, query)
+            if (found) break
+          }
+        }
+
+        // Try fuzzy match
+        if (!found) {
+          for (const { node: textNode, text } of textNodes) {
+            const textLower = text.toLowerCase()
+            const allWordsFound = queryWords.every(word => textLower.includes(word))
+            if (allWordsFound) {
+              const firstWordIdx = textLower.indexOf(queryWords[0])
+              if (firstWordIdx !== -1) {
+                found = scrollToTextNode(textNode, firstWordIdx, queryWords[0])
+                if (found) break
+              }
+            }
+          }
+        }
+
+        if (found) break
+      }
+    }, 300)
+  })
+}
+
+// Scroll to specific text node and highlight
+function scrollToTextNode(textNode: Text, idx: number, query: string): boolean {
+  const text = textNode.textContent || ''
+  const searchLength = query.length
+
+  const range = document.createRange()
+  range.setStart(textNode, idx)
+  range.setEnd(textNode, Math.min(idx + searchLength, text.length))
+
+  const rect = range.getBoundingClientRect()
+  if (rect.width > 0 && rect.height > 0) {
+    const parent = textNode.parentElement
+    if (parent) {
+      // Use smooth scrolling with slight delay for better animation
+      parent.scrollIntoView({ behavior: 'smooth', block: 'center' })
+
+      // Highlight the matched text
+      const highlight = document.createElement('mark')
+      highlight.className = 'search-scroll-highlight'
+      highlight.style.cssText = 'background: rgba(var(--mdui-color-primary), 0.3); border-radius: 2px; padding: 0 2px;'
+
+      try {
+        range.surroundContents(highlight)
+      } catch {
+        // If surroundContents fails, highlight parent
+        parent.style.background = 'rgba(var(--mdui-color-primary), 0.15)'
+        setTimeout(() => {
+          parent.style.background = ''
+        }, 3000)
+      }
+
+      return true
+    }
+  }
+  return false
+}
+
+// Register scroll handler after route changes
+const route = useRoute()
+watch(() => route.path, () => {
+  scrollToMatchedText()
+})
 
 function highlightText(text: string, query: string): string {
   if (!query.trim()) return escapeHtml(text)
