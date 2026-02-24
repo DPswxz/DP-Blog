@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch, nextTick, defineEmits } from 'vue';
+import { onMounted, ref, watch, nextTick } from 'vue';
 import { useData, withBase, useRouter } from 'vitepress';
 import { gsap } from 'gsap';
 import { useThemeGlobalStore } from '../global';
@@ -125,34 +125,18 @@ onMounted(() => {
         viewText.value = frontmatter.value.description
     }
     nextTick(() => {
-        if (fromRouter.value) {
-            if (postContentRef.value) {
-                gsap.set(postContentRef.value, {
-                    marginTop: 500,
-                    opacity: 0,
-                })
-            }
-            if (postPageBackgroundRef.value) {
-                gsap.set(postPageBackgroundRef.value, {
-                    borderRadius: '1rem',
-                })
-            }
-        }
         toggleTheme(themeMode.value)
         if (postContentRef.value) {
             let all_images = postContentRef.value.querySelectorAll('img')
             if (all_images) {
                 imagesCount.value = all_images.length
-                console.log('images-count', imagesCount.value)
                 if (imagesCount.value === 0) {
                     emits('imagesLoaded')
                     contentLoaded.value = true
                 } else {
                     all_images.forEach((img: any) => {
-                        console.log('addevent')
                         img.addEventListener('load', () => {
                             imagesLoaded.value++
-                            console.log('image-loaded', imagesLoaded.value + '/' + imagesCount.value)
                         })
                     })
                 }

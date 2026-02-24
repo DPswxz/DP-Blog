@@ -151,7 +151,7 @@ router.onAfterRouteChange = async () => {
             containerRef.value.style.transform = `translateY(${boxData.value.y - 96}px)`
             containerRef.value.style.height = boxData.value.height + 'px'
             containerRef.value.style.borderRadius = '1rem'
-            containerRef.value.style.opacity = '1'
+
         }
         transition.ready.then(() => {
             if (containerRef.value && boxData.value.active) {
@@ -170,7 +170,7 @@ router.onAfterRouteChange = async () => {
                     },
                     {
                         duration: 500,
-                        easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                        easing: 'ease-out',
                         pseudoElement: '::view-transition-old(layout-main)',
                     }
                 );
@@ -181,7 +181,7 @@ router.onAfterRouteChange = async () => {
                     },
                     {
                         duration: 500,
-                        easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                        easing: 'ease-out',
                         pseudoElement: '::view-transition-new(layout-main)',
                     }
                 );
@@ -193,11 +193,9 @@ router.onAfterRouteChange = async () => {
             }
 
             let listenFlagState = new Promise((resolved, rejected) => {
-                let attempts = 0
                 function listen() {
-                    attempts++
-                    if (contentLoaded.value || attempts > 30) {
-                        return resolved(true)
+                    if (contentLoaded.value) {
+                        return resolved(contentLoaded.value)
                     }
 
                     setTimeout(() => requestAnimationFrame(listen), 100)
@@ -205,15 +203,13 @@ router.onAfterRouteChange = async () => {
                 listen()
             })
             await listenFlagState.then((loaded) => {
-                console.log(loaded, 'then?')
-                console.log(boxData.value)
                 if (containerRef.value) {
-                    console.log('Animate')
                     gsap.fromTo(containerRef.value, {
+                        opacity: 0,
                         y: boxData.value.y - 96,
                         height: boxData.value.height,
                     }, {
-                        y: 0, duration: 0.7, height: 'initial', ease: "power3.out", borderRadius: '1.75rem',
+                        opacity: 1, y: 0, duration: 0.7, height: 'initial', ease: "expo.out", borderRadius: '1.75rem',
                         onStart: () => {
 
                         },
@@ -241,15 +237,10 @@ router.onAfterRouteChange = async () => {
     } else {
         if (boxData.value.active) {
             console.log('Animation fallback...')
-            if (containerRef.value) {
-                containerRef.value.style.opacity = '1'
-            }
             let listenFlagState = new Promise((resolved, rejected) => {
-                let attempts = 0
                 function listen() {
-                    attempts++
-                    if (contentLoaded.value || attempts > 30) {
-                        return resolved(true)
+                    if (contentLoaded.value) {
+                        return resolved(contentLoaded.value)
                     }
                     if (containerRef.value) {
                         if (!location.hash) {
@@ -276,7 +267,7 @@ router.onAfterRouteChange = async () => {
                                 layoutRef.value?.scrollTo(0, 0)
                             }
                         },
-                        y: 0, opacity: 1, duration: 0.7, height: 'initial', ease: "power3.out",
+                        y: 0, opacity: 1, duration: 0.7, height: 'initial', ease: "expo.out",
                         onComplete: () => {
                             boxData.value.active = false
                             fromRouter.value = false
