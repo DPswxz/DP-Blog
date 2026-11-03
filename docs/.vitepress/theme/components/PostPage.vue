@@ -4,7 +4,7 @@ import { useData, withBase, useRouter } from 'vitepress';
 import { gsap } from 'gsap';
 import { useThemeGlobalStore } from '../global';
 import { storeToRefs } from 'pinia'
-import { formatDateString, changeFontSize, fontSizeData } from '../utils'
+import { formatDateString, fontSizeData } from '../utils'
 import { translations } from '../translations';
 import '@mdui/icons/access-time.js';
 import '@mdui/icons/link.js';
@@ -13,7 +13,7 @@ import '@mdui/icons/arrow-back.js';
 const router = useRouter();
 
 const store = useThemeGlobalStore();
-const { themeMode, themeColor, fromRouter, pageViews, boxData, backgroundImage, backgroundImageDark, contentLoaded } = storeToRefs(store);
+const { themeMode, themeColor, fromRouter, pageViews, backgroundImage, backgroundImageDark, contentLoaded } = storeToRefs(store);
 
 
 const data = useData()
@@ -120,10 +120,6 @@ onMounted(() => {
         showCCLicense.value = true
     }
     dateText.value = formatDateString(frontmatter.value.date)
-    if (fromRouter.value) {
-        dateText.value = formatDateString(frontmatter.value.date).split(' ')[0].replace(/-/g, '.').substring(2)
-        viewText.value = frontmatter.value.description
-    }
     nextTick(() => {
         toggleTheme(themeMode.value)
         if (postContentRef.value) {
@@ -134,19 +130,27 @@ onMounted(() => {
                     emits('imagesLoaded')
                     contentLoaded.value = true
                 } else {
-                    all_images.forEach((img: any) => {
-                        img.addEventListener('load', () => {
+                    all_images.forEach((img: HTMLImageElement) => {
+                        if (img.complete) {
                             imagesLoaded.value++
-                        })
+                            return
+                        }
+                        const settled = () => {
+                            img.removeEventListener('load', settled)
+                            img.removeEventListener('error', settled)
+                            imagesLoaded.value++
+                        }
+                        img.addEventListener('load', settled, { once: true })
+                        img.addEventListener('error', settled, { once: true })
                     })
                 }
             }
         }
-        if (titleRef.value instanceof HTMLElement && !fromRouter.value) {
+        if (titleRef.value instanceof HTMLElement) {
             titleRef.value.style.lineHeight = '2.5rem'
             titleRef.value.style.marginTop = '10px'
         }
-        if (postPageBackgroundRef.value && !fromRouter.value) {
+        if (postPageBackgroundRef.value) {
             postPageBackgroundRef.value.style.borderRadius = '1.75rem'
             let getPostBGRect = postPageBackgroundRef.value.getBoundingClientRect()
             let fontSize = 'default'
@@ -165,10 +169,6 @@ onMounted(() => {
         }
         if (postPageBackgroundRef.value && !fromRouter.value && !location.hash) {
             let timeline = gsap.timeline()
-            timeline.to(postPageBackgroundRef.value, {
-                duration: 0.4,
-                opacity: 0,
-            })
             timeline.fromTo(postPageBackgroundRef.value, { y: 32, opacity: 0 }, {
                 y: 0,
                 opacity: 1,
@@ -232,89 +232,6 @@ watch(imagesLoaded, (loaded: any) => {
         emits('imageLoaded', loaded)
     }
 })
-
-watch(contentLoaded, (loaded: any) => {
-    if (loaded) {
-        console.log('images-loaded')
-        emits('imagesLoaded')
-        let AnimateTimeline = gsap.timeline()
-        if (postImgRef.value instanceof HTMLElement && fromRouter.value) {
-            if (boxData.value.y - 96 > 0) {
-                AnimateTimeline.to(postImgRef.value, {
-                    duration: 0.5,
-                    paddingBottom: 0,
-                    ease: 'power2.out',
-                })
-            }
-            for (let i = 0; i < postImgRef.value.children.length; i++) {
-                AnimateTimeline.to(postImgRef.value.children[i], {
-                    duration: 0.02,
-                    maxHeight: '500px',
-                    ease: "expo.out"
-                }, 0)
-            }
-        }
-
-        if (postPageBackgroundRef.value && fromRouter.value) {
-            AnimateTimeline.fromTo(postPageBackgroundRef.value, { borderRadius: '1rem' }, { borderRadius: '1.75rem', duration: 0.4, ease: 'expo.out' }, 0.1)
-        }
-        if (postContentRef.value instanceof HTMLElement && fromRouter.value) {
-            AnimateTimeline.fromTo(postContentRef.value, { marginTop: 500, }, {
-                duration: 0.5,
-                marginTop: 32,
-                ease: 'expo.out',
-            }, 0.2)
-            AnimateTimeline.fromTo(postContentRef.value, { opacity: 0, }, {
-                duration: 1,
-                opacity: 1,
-                ease: 'expo.out',
-            }, 0.2)
-        }
-
-        if (postPageBackgroundRef.value) {
-            changeFontSize({ width: postPageBackgroundRef.value.clientWidth, timeline: AnimateTimeline, position: 0.2, force: true })
-        }
-
-        if (titleRef.value instanceof HTMLElement && fromRouter.value) {
-            AnimateTimeline.to(titleRef.value, {
-                marginTop: '10px',
-                duration: 0.3,
-                lineHeight: '2.5rem',
-                ease: 'expo.out',
-            }, 0.2)
-        }
-        if (fromRouter.value) {
-            AnimateTimeline.to('.post-page-card-date', {
-                opacity: 0,
-                ease: 'expo.out',
-                duration: 0.2,
-                onComplete: () => {
-                    dateText.value = formatDateString(frontmatter.value.date)
-                    gsap.to('.post-page-card-date', {
-                        opacity: 1,
-                        ease: 'expo.out',
-                        duration: 0.2,
-                    })
-                }
-            }, 0.2)
-            AnimateTimeline.to('.post-page-card-views', {
-                opacity: 0,
-                ease: 'expo.out',
-                duration: 0.2,
-                onComplete: () => {
-                    viewText.value = ''
-                    gsap.to('.post-page-card-views', {
-                        opacity: 1,
-                        ease: 'expo.out',
-                        duration: 0.2,
-                    })
-                }
-            }, 0.2)
-        }
-
-    }
-})
-
 
 const hideTitle = ref(false)
 
@@ -413,6 +330,7 @@ function goBack() {
     z-index: 20;
     height: auto;
     background-color: rgb(var(--mdui-color-surface-variant));
+    max-height: 500px;
 }
 
 
@@ -548,7 +466,7 @@ function goBack() {
 }
 
 .post-page-content-area {
-    margin-top: 48px;
+    margin-top: 32px;
 }
 
 .post-page-content-area.noRoute {

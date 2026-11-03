@@ -85,6 +85,9 @@ const defineConfig = { // Docs: https://vitepress.dev/reference/site-config
 
 
   head: [
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg?v=20261021-2' }],
+    ['link', { rel: 'alternate icon', type: 'image/png', sizes: '32x32', href: '/favicon-32.png?v=20261021-2' }],
+    ['link', { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png?v=20261021-2' }],
     [
       'link',
       { 'rel': 'preconnect', 'href': 'https://fonts.googleapis.com' }

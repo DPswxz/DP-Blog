@@ -144,7 +144,7 @@ onMounted(() => {
 
 <template>
     <div class="post-card-layout-container" ref="postCardLayoutContainer" @click="" :card-color="color" :card-color-dark="color_dark">
-        <mdui-card class="post-card-layout" variant="filled" @click.prevent="" clickable :href="url" :class="{ 'has-image': backgroundImage }">
+        <mdui-card class="post-card-layout" variant="filled" clickable :href="url" :class="{ 'has-image': backgroundImage }">
             <div class="post-card" :class="{ 'has-image': props.post?.cover_image }">
                 <img ref="coverImgDarkRef" alt="" draggable="false" @contextmenu.prevent class="post-img-dark"
                     v-if="cover_image_dark" :class="{ 'opacity': use_dark }">

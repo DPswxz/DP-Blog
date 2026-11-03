@@ -15,6 +15,7 @@ interface Post {
   }
 
 interface AkariThemeConfig {
+  bounceAnimation?: boolean,
   debugInfo: boolean,
   nav: {
     text: string,

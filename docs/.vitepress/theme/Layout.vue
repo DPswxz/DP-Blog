@@ -11,9 +11,9 @@ import themeConfig from '../config';
 import HomePage from './components/HomePage.vue';
 import PostPage from './components/PostPage.vue';
 import NavList from './components/NavList.vue';
+import ArticleTOC from './components/ArticleTOC.vue';
 import Footer from './components/Footer.vue'
 import NotFound from './components/NotFound.vue';
-import ClickToTop from './components/ClickToTop.vue';
 import SearchDialog from './components/SearchDialog.vue';
 import SiteNotice from './components/SiteNotice.vue';
 import { setTheme } from 'mdui/functions/setTheme.js';
@@ -126,165 +126,97 @@ const layoutRef = ref<HTMLElement | undefined>()
 const containerRef = ref<HTMLElement | undefined>()
 const loadingBarRef = ref<HTMLElement | undefined>()
 
-var transition: any = null
+// Capture the selected card only after the destination module has loaded.
+// The View Transition update callback spans VitePress's actual DOM replacement.
+let cardTransition: any = null
+let releaseRouteUpdate: (() => void) | null = null
+let selectedCard: HTMLElement | null = null
+let enteringHeader: HTMLElement | null = null
+let selectedRect: DOMRect | null = null
+const sharedCardName = 'akari-post-card'
 
-router.onBeforeRouteChange = async () => {
+function finishCardTransition() {
+    selectedCard?.style.removeProperty('view-transition-name')
+    enteringHeader?.style.removeProperty('view-transition-name')
+    selectedCard = null
+    enteringHeader = null
+    selectedRect = null
+    boxData.value.active = false
+    fromRouter.value = false
+    startTransition.value = false
+    cardTransition = null
+}
+
+router.onBeforeRouteChange = async (href) => {
+    releaseRouteUpdate?.()
+    releaseRouteUpdate = null
+    cardTransition?.skipTransition()
+    selectedCard?.style.removeProperty('view-transition-name')
+    enteringHeader?.style.removeProperty('view-transition-name')
+    if (containerRef.value) {
+        gsap.killTweensOf(containerRef.value)
+        gsap.set(containerRef.value, { clearProps: 'opacity,transform,height,clipPath' })
+    }
     contentLoaded.value = false
     imageLoaded.value = 0
     imagesCount.value = 0
-    if (boxData.value.active && containerRef.value) {
-        containerRef.value.style.opacity = '0'
+    const destination = new URL(href, location.href).pathname
+    const isCardNavigation = boxData.value.active && destination === new URL(boxData.value.url, location.href).pathname
+    if (!isCardNavigation) {
+        finishCardTransition()
+        return
     }
-    if ((document as any).startViewTransition && boxData.value.active) {
-        startTransition.value = true
-        transition = (document as any).startViewTransition(async () => {
-            await nextTick()
-        })
+    selectedCard = document.querySelector<HTMLElement>('.home-content-container.is-selected .post-card-layout')
+    selectedRect = selectedCard?.getBoundingClientRect() || null
+    startTransition.value = true
+}
 
-    }
+router.onAfterPageLoad = async () => {
+    if (!selectedCard || matchMedia('(prefers-reduced-motion: reduce)').matches || !(document as any).startViewTransition) return
+    selectedCard.style.viewTransitionName = sharedCardName
+    let captured!: () => void
+    const oldPageCaptured = new Promise<void>(resolve => { captured = resolve })
+    const routeUpdated = new Promise<void>(resolve => { releaseRouteUpdate = resolve })
+    cardTransition = (document as any).startViewTransition(async () => {
+        captured()
+        await routeUpdated
+    })
+    // A skipped transition must never prevent the router from progressing.
+    cardTransition.ready.catch(() => captured())
+    await oldPageCaptured
 }
 
 router.onAfterRouteChange = async () => {
     pageViews.value = 0
-    if (transition) {
-        if (containerRef.value) {
-            containerRef.value.style.transform = `translateY(${boxData.value.y - 96}px)`
-            containerRef.value.style.height = boxData.value.height + 'px'
-            containerRef.value.style.borderRadius = '1rem'
-
-        }
-        transition.ready.then(() => {
-            if (containerRef.value && boxData.value.active) {
-                if (!location.hash) {
-                    layoutRef.value?.scrollTo(0, 0)
-                }
-                let dropHeight = boxData.value.y - 96
-                if (dropHeight < 300) {
-                    dropHeight = 300
-                }
-                document.documentElement.animate(
-                    {
-                        transform: `translateY(${dropHeight}px)`,
-                        opacity: 0,
-                        mixBlendMode: 'plus-lighter',
-                    },
-                    {
-                        duration: 500,
-                        easing: 'ease-out',
-                        pseudoElement: '::view-transition-old(layout-main)',
-                    }
-                );
-                document.documentElement.animate(
-                    {
-                        transform: 'none',
-                        mixBlendMode: 'normal',
-                    },
-                    {
-                        duration: 500,
-                        easing: 'ease-out',
-                        pseudoElement: '::view-transition-new(layout-main)',
-                    }
-                );
-            }
-        })
-        if (containerRef.value && boxData.value.active) {
-            if (!location.hash) {
-                layoutRef.value?.scrollTo(0, 0)
-            }
-
-            let listenFlagState = new Promise((resolved, rejected) => {
-                function listen() {
-                    if (contentLoaded.value) {
-                        return resolved(contentLoaded.value)
-                    }
-
-                    setTimeout(() => requestAnimationFrame(listen), 100)
-                }
-                listen()
-            })
-            await listenFlagState.then((loaded) => {
-                if (containerRef.value) {
-                    gsap.fromTo(containerRef.value, {
-                        opacity: 0,
-                        y: boxData.value.y - 96,
-                        height: boxData.value.height,
-                    }, {
-                        opacity: 1, y: 0, duration: 0.7, height: 'initial', ease: "expo.out", borderRadius: '1.75rem',
-                        onStart: () => {
-
-                        },
-                        onComplete: () => {
-                            boxData.value.active = false
-                            fromRouter.value = false
-                            if (containerRef.value) {
-                                containerRef.value.style.transform = 'unset' // patch for mdui: https://github.com/zdhxiong/mdui/issues/296
-                            }
-                        }
-                    })
-                }
-            }).then(() =>
-                startTransition.value = false
-            )
-
-
-        } else {
-            if (!location.hash) {
-                layoutRef.value?.scrollTo(0, 0)
-            }
-        }
-
-
-    } else {
-        if (boxData.value.active) {
-            console.log('Animation fallback...')
-            let listenFlagState = new Promise((resolved, rejected) => {
-                function listen() {
-                    if (contentLoaded.value) {
-                        return resolved(contentLoaded.value)
-                    }
-                    if (containerRef.value) {
-                        if (!location.hash) {
-                            layoutRef.value?.scrollTo(0, 0)
-                        }
-                        containerRef.value.style.transform = `translateY(${boxData.value.y - 96}px)`
-                        containerRef.value.style.height = boxData.value.height + 'px'
-                        containerRef.value.style.borderRadius = '1rem'
-
-                    }
-
-                    setTimeout(() => requestAnimationFrame(listen), 100)
-                }
-                listen()
-            })
-            await listenFlagState.then((loaded) => {
-                if (containerRef.value) {
-                    gsap.fromTo(containerRef.value, {
-                        opacity: 0, y: boxData.value.y - 96,
-                        height: boxData.value.height,
-                    }, {
-                        onStart: () => {
-                            if (!location.hash) {
-                                layoutRef.value?.scrollTo(0, 0)
-                            }
-                        },
-                        y: 0, opacity: 1, duration: 0.7, height: 'initial', ease: "expo.out",
-                        onComplete: () => {
-                            boxData.value.active = false
-                            fromRouter.value = false
-                            if (containerRef.value) {
-                                containerRef.value.style.transform = 'unset' // patch for mdui: https://github.com/zdhxiong/mdui/issues/296
-                            }
-                        }
-                    })
-                }
-            })
-        } else {
-            if (!location.hash) {
-                layoutRef.value?.scrollTo(0, 0)
-            }
-        }
+    await nextTick()
+    if (!location.hash) layoutRef.value?.scrollTo(0, 0)
+    const transitioning = boxData.value.active && fromRouter.value
+    const currentTransition = cardTransition
+    if (transitioning) {
+        enteringHeader = containerRef.value?.querySelector<HTMLElement>('.post-page-card') || null
+        if (currentTransition && enteringHeader) enteringHeader.style.viewTransitionName = sharedCardName
     }
-    transition = null
+    releaseRouteUpdate?.()
+    releaseRouteUpdate = null
+    if (currentTransition) {
+        // Route hooks return promptly; the browser owns the shared-card morph.
+        currentTransition.finished.finally(() => {
+            if (cardTransition === currentTransition) finishCardTransition()
+        }).catch(() => {})
+    } else if (transitioning && containerRef.value && selectedRect && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        // Preserve the same card-to-article movement in browsers without VT.
+        const container = containerRef.value
+        const headerTop = enteringHeader?.getBoundingClientRect().top || container.getBoundingClientRect().top
+        gsap.fromTo(container, {
+            y: selectedRect.top - headerTop,
+            clipPath: 'inset(0 0 calc(100% - ' + selectedRect.height + 'px) 0 round 28px)',
+        }, {
+            y: 0, clipPath: 'inset(0 0 0 0 round 28px)', duration: .65, ease: 'expo.out',
+            onComplete: () => { gsap.set(container, { clearProps: 'transform,clipPath' }); finishCardTransition() },
+        })
+    } else {
+        finishCardTransition()
+    }
     if (themeConfig.themeConfig.viewsCounter && !page.value.isNotFound) {
         console.log(router.route.path)
         fetch(themeConfig.themeConfig.viewsCounter + `?path=${router.route.path}`).then((res) => {
@@ -526,7 +458,7 @@ watch(router.route, (route) => {
                 <Transition :css="false">
                     <div class="container-main" ref="containerRef">
                         <HomePage v-if="frontmatter.layout === 'home'" @images-loaded="onImagesLoaded" />
-                        <PostPage :key="new Date().getTime()" v-else-if="!page.isNotFound" @scroll-to-hash="scrollToTop"
+                        <PostPage :key="router.route.path" v-else-if="!page.isNotFound" @scroll-to-hash="scrollToTop"
                             @images-loaded="onImagesLoaded" @images-count="onImagesCount" @image-loaded="onImageLoaded">
                         </PostPage>
                         <!-- forceUpdate -->
@@ -534,12 +466,12 @@ watch(router.route, (route) => {
                     </div>
                 </Transition>
             </div>
-            <ClickToTop @scroll-to-top="scrollToTop"></ClickToTop>
             <SiteNotice></SiteNotice>
             <Footer></Footer>
         </mdui-layout-main>
     </mdui-layout>
     <div class="layout-shadow"></div>
+    <ArticleTOC :drawer-open="drawerOpen" @scroll-to-top="scrollToTop" />
 </template>
 
 <style>
@@ -595,9 +527,6 @@ watch(router.route, (route) => {
     padding-top: 32px !important;
 }
 
-.layout-main.start-transition {
-    view-transition-name: layout-main;
-}
 
 .container-main {
     /* width: calc(100vw * 0.70); */
@@ -641,22 +570,27 @@ watch(router.route, (route) => {
 } */
 
 
-::view-transition-old(root) {
-    animation: none;
+::view-transition-group(akari-post-card) {
+    animation-duration: .65s;
+    animation-timing-function: cubic-bezier(.22, 1, .36, 1);
+    overflow: clip;
+    border-radius: 28px;
 }
-
-::view-transition-new(root) {
-    animation: none;
+::view-transition-old(akari-post-card),
+::view-transition-new(akari-post-card) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    mix-blend-mode: normal;
 }
-
-::view-transition-old(layout-main) {
-    animation: none;
-    mix-blend-mode: none;
-}
-
-::view-transition-new(layout-main) {
-    mix-blend-mode: none;
-    animation: none
+::view-transition-old(akari-post-card) { animation: card-fade-out .15s ease both; }
+::view-transition-new(akari-post-card) { animation: card-fade-in .25s ease both; }
+::view-transition-old(root) { animation: card-fade-out .18s ease both; }
+::view-transition-new(root) { animation: card-fade-in .32s ease both; }
+@keyframes card-fade-out { to { opacity: 0; } }
+@keyframes card-fade-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation-duration: 0s; }
 }
 
 .navigation-list {

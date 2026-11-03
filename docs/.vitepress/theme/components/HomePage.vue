@@ -55,7 +55,7 @@ function toggleSort() {
 var containerRef: HTMLCollectionOf<Element> | null = null;
 
 
-const selectedItem = ref(null);
+const selectedItem = ref<number | null>(null);
 
 
 const emit = defineEmits(['clickHomeItem', 'imagesLoaded']);
@@ -117,7 +117,10 @@ onMounted(() => {
 
 watch(() => themeMode.value, flush)
 
-function selectPostItem(index: any) {
+async function selectPostItem(index: any, event: MouseEvent) {
+    if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
+    event.preventDefault()
+    if (store.startTransition) return
     const post = postList.value[index]
     if (post.clickable && containerRef) {
         let rect = containerRef[index].getBoundingClientRect();
@@ -139,10 +142,10 @@ function selectPostItem(index: any) {
             'fromRouter': true,
             'themeColor': color,
         })
-        // delay for wait click animation finish
-        setTimeout(() => {
-            router.go(withBase(post.data.url))
-        }, 200)
+        store.startTransition = true
+        await nextTick()
+        // Start loading immediately while the selected card stays visible.
+        router.go(withBase(post.data.url))
     }
 }
 
@@ -170,7 +173,8 @@ backgroundImageDark.value = frontmatter.value.cover_image_dark
             </mdui-chip>
         </div>
         <TransitionGroup name="list">
-            <div v-for="(post, i) in postList" :key="post.data?.url" @click="selectPostItem(i)" class="home-content-container"
+            <div v-for="(post, i) in postList" :key="post.data?.url" @click="selectPostItem(i, $event)" class="home-content-container"
+                :class="{ 'is-selected': selectedItem === i }"
                 :data-index="i">
                 <post-card :post="post.data"></post-card>
             </div>

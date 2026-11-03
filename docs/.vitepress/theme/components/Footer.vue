@@ -28,7 +28,7 @@ onMounted(() => {
         }
         if (defineConfig.themeConfig.debugInfo) {
             import('ua-parser-js').then((module) => {
-                let ua = new module.default();
+                let ua = new module.UAParser();
                 let browserName = ua.getBrowser().name;
                 if (browserName && otherInfo.value) {
                     if (defineConfig.themeConfig.footer.beian && defineConfig.themeConfig.footer.beian.use) {

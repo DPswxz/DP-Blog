@@ -5,6 +5,8 @@ const translations_values = {
         docSearch: {
         },
         components: {
+            tocTitle: 'Table of Contents',
+            mobileTocButton: 'Table of Contents',
             ccLicense: 'This work is licensed under <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International</a>.',
             viewCounts: ' views',
             clickToTop: 'Back to top',
@@ -52,6 +54,8 @@ const translations_values = {
             },
         },
         components: {
+            tocTitle: 'Table of Contents',
+            mobileTocButton: 'Table of Contents',
             ccLicense: '本作品采用<a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0国际许可协议</a>进行许可，禁止商用博客中（如闲鱼等平台二次售卖）的内容。',
             viewCounts: '次浏览',
             clickToTop: '返回顶部',
